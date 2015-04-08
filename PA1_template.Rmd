@@ -1,145 +1,124 @@
 ---
-title: "Reproducible Research: Step activity analysis"
+title: "Step activity tracking data analysis"
 author: "Natalia Chodelski"
 date: "13 April 2015"
 output: html_document
 ---
-<br>
+## Testing the CLT via simulation in R
+
+#### Natalia Chodelski - 7 April 2015
+
 #### Loading and pre-processing the data  
 
 ```{r, echo=T}
 # set working directory to the folder where i have 'activity.csv'
-setwd("/Users/Natalia/Coding/Reproducible_Research/RepData_PeerAssessment1/")
-
-# load with read.csv()
+setwd("/Users/Natalia/Coding/Reproducible_Research/")
 activity <- read.csv("activity.csv", header = T)
 ```
-<br>  
-
-  
-I processed the data by turning the given dates and time intervals into r-recognizable date-time format.
-
-str_pad() added zeros to the front of shorter time intervals so all time intervals were in 4 digit 24 hr time format. I then pasted the time onto the dates, and processed into r-recognizable times with strptime() 
  
 
-```{r, echo=T}
-# pad time intervals with zeros 
-library(stringr)
-activity$time <- str_pad(activity$interval, 4, pad = "0")
+I processed the data by turning the given dates and time intervals into R POSITX date-time format.  I first used str_pad() to add zeros to the front of shorter time intervals so all time intervals were 4 digits long in 24 hr time format. I then pasted the time strings onto the date strings, and processed into POSITX format using strptime().
 
-# join time and date together, then process 
-activity$datetime <- paste(activity$date, activity$time)
-activity$R_time <- strptime(activity$datetime, format = "%Y-%m-%d %H%M")
+```{r, echo= T}
+library(stringr) # pad time intervals with zeros 
+activity$time <- str_pad(activity$interval, 4, pad = "0") 
+activity$datetime <- paste(activity$date, activity$time)  # pasting together
+activity$R_time <- strptime(activity$datetime, format = "%Y-%m-%d %H%M")  # interpreting
 ```
 <br>  
   
+#### Mean steps per day
 
-I calculated the mean  number of steps taken per day, using tapply, with simplify = TRUE to the result to an array.  I created a data frame by using column-bind to join an array of the unique dates to the mean number of steps.  I lastly assigned tidy column names.
+I calculated the mean  number of steps taken per day, using tapply, with simplify = TRUE to the result to an array.  I created a data frame by using column-bind to join an array of the unique dates to the mean number of steps.  I lastly assigned tidy column names.the rownames of the summarized steps (which are the dates) with the mean number of steps per day.  I lastly assigned tidy column names to this new data frame.
 
 ```{r, echo=T}
-# calculating means and making data frame
 mean_steps <- tapply(X = activity$steps, INDEX = activity$date, FUN = mean, simplify = T)
-
-mean_steps_table <- cbind(unique(as.data.frame(activity$date)), mean_steps)
-
-# the data frame needs nice column names
-colnames(mean_steps_table) <- c("Date measured","Mean Steps")
+mean_steps_table <- data.frame(rownames(mean_steps), mean_steps)
+colnames(mean_steps_table) <- c("Date measured","Mean_steps")  # renaming with tidy names
 ```
 <br>  
 
-I used the xtable package to create and print a tidy HTML table of mean steps per day in the markdown document.
+I then used the xtable package to create and print a tidy HTML table of the mean steps per day.
 
 ```{r showtable, results='asis'}
 library(xtable)
-
 table <- xtable(mean_steps_table, align = c("c","c","c"))
 print(table, type="html", include.rownames = FALSE)
 ```
 <br>
-   
-I used tapply to calculate the total number of steps taken per day, and specified simplify = TRUE so that the result would be returned as an array.   
+  
+#### Total steps per day
 
-I examined the variation in the number of steps taken on different days by plotting a histogram with the base plotting function hist().
+I used tapply to calculate the total number of steps taken per day, and specified simplify = TRUE so that the result would be returned as an array.   I then examined the variation in the number of steps taken on different days by plotting a histogram with the base plotting function hist().
 
 
 ```{r, histogram1, echo=T}
 total_steps <- tapply(X = activity$steps, INDEX = activity$date, FUN = sum, simplify = T)
-
-# create the histogram
-hist(total_steps, breaks = 40, col="orange",  xlab =("Steps per day"), ylab = ("Number of days in frequency range"), main = ("Frequency histogram: total steps taken per day"))
+hist(total_steps, breaks = 40, col="orange",  xlab =("Steps per day"), 
+     ylab = ("Number of days in frequency range"),  main = ("Frequency histogram: total steps taken per day"))
 ```
 <br>  
 
-I then calculated the mean and median total number of steps. I had to use na.rm = TRUE since there were NA values for the number of steps on some days.
+I then calculated the mean and median total number of steps. I had to use na.rm = TRUE, because on some days no steps were recorded; those days had NA values for the number of steps taken.
 
 ```{r, echo=T}
 mean_step_amount <- as.integer(mean(total_steps, na.rm = TRUE))
 median_step_amount <- median(total_steps, na.rm = TRUE)
 ```
-<br>  
 
-The mean number of steps the subject walked per day was `r mean_step_amount`, while the median was `r median_step_amount` steps per day.   
+The mean number of steps the subject walked per day was **`r mean_step_amount`,**  while the median was **`r median_step_amount`** steps per day.   
 
+<br>
 
-I then used lapply to calculate the average number of steps taken in each 5-minute time interval, for all days.  I created a time series plot showing the mean number of steps taken over the course of an average day. 
+#### Average steps taken per time interval 
 
-I had to make a vector of the first 288 time intervals from my r-formatted time column (produced in pre-processing, to use as the x values (because the raw interval values have a large jump from 0055 - 1000 each hour, which would negativly affect the acccuracy of the graph).
+I used tapply to calculate the average number of steps taken in each 5-minute time interval, for all days.  
+
+I then wanted to plot the steps taken per time interval as a time series. To do this, I needed to create an altered time interval for graphing, because the integer 'interval' column from the original data skips from 55 to 100 every hour, resulting in an unevenly spaced time series plot that doesn't accurately represent the data. I filled the 'real_time_intervals' column with a a full day's POSITX values from the R-time column I created during pre-processing (288 values total). This meant I had a full 24 hrs time in 5 minute intervals for graphing the average steps per time interval against. 
 
 ```{r, timeseriesplot1, fig.height = 6, fig.width=8, echo=T}
-# the average step values per time interval
-average_per_time <- tapply(X = activity$steps, INDEX =  activity$interval, FUN = mean, na.rm = TRUE, simplify = TRUE)
+average_per_time <-tapply(X = activity$steps, INDEX =  activity$interval, FUN = mean, na.rm = TRUE, simplify = TRUE)
 
-# Time intervals to use for graphing
+# one day of 5 minute time intervals to use for graphing the average steps against.
 real_time_intervals <- activity$R_time[1:288]
+plot(real_time_intervals, average_per_time, type = "l" ,  col = "darkviolet", lwd = 2.2,  
+     xlab =("Time interval (minutes)"), ylab = ("Average number of steps"), cex.main = 1, cex.lab = 1.2)
 
-# graph data
-plot(real_time_intervals, average_per_time, type = "l", col = "darkviolet", lwd = 2.2,  xlab =("Time interval (minutes)"), ylab = ("Average number of steps"), cex.main = 1, cex.lab = 1.2) #, xaxt = "n")
-
-
-# find the max average activitiy: sort interval averages by total number of steps
+# find the max average activitiy, and the time interval the max occured.
 max_num_steps <- max(average_per_time)
-
-# and find and record the time interval at which this max number of steps occured 
 max_interval <- names(average_per_time[average_per_time == max_num_steps])
 ```
 
-On average, the subject took the most steps each day at `r max_interval`, which is the five minute period from 8:35 to 8:40 am. This might be when the subject walked to work, or perhaps took an early morning walk. 
+On average, the subject took the most steps each day at **`r max_interval`,** which is the five minute period from 8:35 to 8:40 am. This might be when the subject walked to work, or perhaps took an early morning walk. 
+
 <br>  
 
 
 #### Imputing missing values
 
+I counted the number of NA values by adding up TRUE vectors returned by the is.na() command.
 
 ```{r, echo=T}
-
-# to count number of NA's in step data, create and store a T/F logical vector using is.na
-is_an_na <- is.na(activity$steps)
-
-# then measure the number of items the logical vector that were TRUE (ie were NA values)
-number_na <- length(is_an_na[is_an_na == TRUE])
-
+number_na <- sum(is.na(activity$steps))
 ```
-<br> 
 
-Some entire days were missing data on the number of steps taken. The total number of missing values in the data set was `r number_na`.
+There were **`r number_na`** NA values in the whole data set, which means that there were `r number_na/288` days missing data.
 
-My strategy for replacing the missign values was cycle through the steps column of the data using a for loop, checking to see if each value was an NA.  For any value that was missing, I replaced it with the average total number of steps for that time interval. 
+<br>
 
-I also ran some checks after to ensure that all missing values had been filled. 
+#### Replacing missing values in Activity data
+
+I created a copy of the activity data in which I could fill in NA values, leaving the original activity data set untouched.  I also needed the average steps per time interval data to be a dataframe along with intervals, in order to use its values for replacment in my for loop, so did this with the data.frame() command.
+
+My strategy for replacing the missing values was to cycle through the steps column of the data using a for loop, checking to see if each value was an NA.  For any value that was missing, I replaced it with the average total number of steps for that time interval. I also created check after that confirms that all the missing values have been filled. 
 
 ```{r, echo=T}
-
-# average_per_time is an array, i need it to be a dataframe to use it properly for replacment
 averages <- data.frame(rownames(average_per_time), average_per_time)
 colnames(averages) <- c("interval", "average_steps")
 
-# making a new data set  with activity data. the NAs in this will be filled in, leaving the original activity data set untouched
-activity_no_NAs <- activity
+activity_no_NAs <- activity  # copying the data set
 
-# keep track of how many NAs were replaced
 count_replaced <- 0
-
-# store length of dataset for the for-loop
 length_data <- length(activity_no_NAs$steps)
 
 for (x in (1:length_data)) {
@@ -149,111 +128,84 @@ for (x in (1:length_data)) {
           count_replaced <<- count_replaced + 1
      } 
 }
-
-## checks: were the correct number of NAs were found and replaced?  (there were 2304 NA values)
-print(count_replaced)
+paste("All NA values were filled: ", (number_na == count_replaced))
 ```
+
 <br>
 
-I calculated the mean and median total number of steps taken each day, using the new dataset with all missing values filled in. 
+#### Number of steps taken per day
+
+I calculated the total number of steps taken each day, using the new dataset with all `r count_replaced` missing values filled in. I then found the mean and median values. 
 
 ```{r, echo=T}
-
-# calculating the total steps taken each day
 total_steps_replacement <- tapply(X = activity_no_NAs$steps, INDEX = activity_no_NAs$date, FUN = sum, simplify = T)
 
-# finding the mean and median number of steps taken each day
 mean_steps_replacement <- as.integer(mean(total_steps_replacement))
-median_steps_replacement <- median(total_steps_replacement)
-
+median_steps_replacement <- as.integer(median(total_steps_replacement))
 ```
 
-The mean number of steps for the original data was `r mean_step_amount` steps, while the mean number of steps for the NA's replaced data set is `r mean_steps_replacement` steps."
+The mean number of steps for the original data was **`r mean_step_amount`** steps, while the mean number of steps for the NA's replaced data set is **`r mean_steps_replacement`** steps."
 
-The median for original data was `r median_step_amount` steps, the median for the replaced data set is `r median_steps_replacement` steps.
+The median for original data was **`r median_step_amount`** steps, the median for the replaced data set is **`r median_steps_replacement`** steps.
 
-The mean and median for the total number of steps has remained the same after replacing the NA values. I believe this is because I used overall means from the data to fill in the missing values, and therefore my additions display the same mean and median as the previous data. 
+The mean and median of the total number of steps has remained about the same after replacing the NA values. I believe this is because I used overall means from the data to fill in the missing values, and therefore my additions display the same mean and median as the previous data. 
 
 <br>
+
 To examine whether the frequency of the total number of steps taken per day had changed, I created a frequency histogram of the total steps per day from the filled-in dataset.  
 
 ```{r, histogram2, echo=T}
-hist(total_steps_replacement, breaks = 40, col="lightblue", xlab =("Steps per day"), ylab = ("Number of days in step freq range"), main = ("Frequency histogram: total steps taken per day (NAs replaced)"))
+hist(total_steps_replacement, breaks = 40, col="lightblue", xlab =("Steps per day"), 
+     ylab = ("Number of days in step freq range"), main = ("Frequency histogram: total steps taken per day (NAs replaced)"))
 ```
-<br>
-
-Replacing the missing values with the average step values per time interval  has changed the overall frequency of step amounts.   The number of days with total steps amounts between 10,500-11,000 steps per day has increased from 7 days to 11 days. In the original data set, the most common step frequency was 10,000-10,500, but with replacment of NAs, the most common frequency has shifted to the next step range.  The comparative frequency of other ranges of steps per day have decreased, compared to the 10,500-11,000 column.
 
 <br>
-#### Comparing weekdays with weekends
 
-To examine whether there were differences in activity patterns between weekdays and weekends, I used the weekdays() function on the column of R-formatted time and date values I created at the start of the analysis. This let me calculate what day of the week each date & time was from. 
+##### My Conculsions
 
-I then used the weekdays to create a new factor variable is_weekday in the dataset with two levels – “weekday” and “weekend”, which indicates whether a given date is a weekday or weekend day.
+Replacing the missing values with the average step values per time interval has changed the overall frequency of step amounts.   The number of days with total steps amounts between 10,500-11,000 steps per day has increased from 7 days to 11 days. In the original data set, the most common step frequency was 10,000-10,500, but with replacment of NAs, the most common frequency has shifted to the next step range.  The comparative frequency of other ranges of steps per day have decreased, compared to the 10,500-11,000 column.
+
+<br>
+
+#### Comparing activity on weekdays vs on weekends
+
+To examine whether there were differences in activity patterns between weekdays and weekends, I used the weekdays() function on the column of R-formatted time and date values I created at the start of the analysis. This let me create new column within the data frame with the day of the week that each observation was recorded. I also needed a factor is_weekday column in the dataset with two levels – “weekday” and “weekend”, to indicates whether a given observation was from a weekday or weekend day. I intialized an empty column in the data frame, and then filled it with values using the ifelse() function.  Finally i converted the column to a factor variable.
+
 
 ```{r, echo=T}
-
-# this code first creates a new column with day of the week for each measurment
 activity_no_NAs$day_of_week <- weekdays(activity_no_NAs$R_time)
-
-# then i created a new column in the dataset to record whether a day was a weekend
 activity_no_NAs$is_weekday <- character(length = length_data)
 
-# I used the day of week to assign a label of "weekday" or "weekend" in a new column
-for (x in (1:length_data)) {
-     if (activity_no_NAs$day_of_week[x] %in% c("Saturday","Sunday")) { 
-          activity_no_NAs$is_weekday[x] <- "weekend"
-          } else {
-               activity_no_NAs$is_weekday[x] <- "weekday"
-          }
-}
-
-# convert is_weekday column to a factor variable
+activity_no_NAs$is_weekday <- ifelse(activity_no_NAs$day_of_week == "Saturday" | activity_no_NAs$day_of_week =="Sunday", "weekend","weekday")  # if x or y, apply  z
 activity_no_NAs$is_weekday <- as.factor(activity_no_NAs$is_weekday)
-
 ```
+
 <br>
 
-Lastly, I calculated the average number of steps taken per time interval on weekdays, and the average number of steps taken per time interval on weekend days. 
+I then calculated the average number of steps taken per time interval overall for weekday days and weekend days and placed in a new data frame with aggregate()...by() from the stats package. I  used this data frame to created a 2 panel time series plot comparing the average step activity on weekdays with the average step activity on weekends. 
 
-I created a 2 panel time series plot comparing the average step activity on weekdays with the average step activity on weekends. 
+The integer 'interval' column from the original data skips from 55 to 100 every hour, resulting in an unevenly spaced time series plot that is distorted. I previously created a column of actual time intervals, using one full day's POSITX values from the R-time column I created during pre-processing (288 values total)
 
-I had to create a column of r-time values to graph steps by, because interval jumps from 55min to 100 min, meaning the resulting graph would be distorted. I created a column of actual time intervals, using of one full day's times & date info from my pre-processing. This was repeated twice (one  24 hrs of time data for graphing weekend, and another 24 hrs of data for graphing weekedays)
+I also needed to create an altered time interval for graphing, because the integer 'interval' column from the original data skips from 55 to 100 every hour, resulting in an unevenly spaced time series plot that is distorted. I created a "five_minute_intervals" column with 5 minute intervals repeated twice (0, 0, 5, 5, 10, 10...etc) (due to the layout of the data) of a full day's time & date values from my R-date/time column I created during pre-processing (288 values total). This meant I had a full 24 hrs time in 5 minute intervals for graphing weekend and weekday averages steps against. 
+
+I plotted the data with ggplot, using the feature facet_wrap() to create two panels, one for weekdays and one for weekends.
 
 ``` {r, timeseriesplot2, fig.height = 7, fig.width=9, echo = TRUE}
+library(stats)
+avg_steps_wkday_wend <- aggregate(x = activity_no_NAs$steps, 
+          by = list(activity_no_NAs$is_weekday, activity_no_NAs$interval), FUN = mean, simplify = T)
+colnames(avg_steps_wkday_wend) <- c("is_weekend","interval","avg_steps")
 
-# calculate avg steps per time interval for weekdays, weekends
-average_weekday_steps <- tapply(X = activity_no_NAs$steps[activity_no_NAs$is_weekday=="weekday"], INDEX = activity_no_NAs$interval[activity_no_NAs$is_weekday=="weekday"], FUN = mean, simplify = T)
+avg_steps_wkday_wend$minute_intervals <- rep(seq(0, 1435, 5), times = 1, each = 2)
 
-average_wkend_steps <- tapply(X = activity_no_NAs$steps[activity_no_NAs$is_weekday=="weekend"], INDEX = activity_no_NAs$interval[activity_no_NAs$is_weekday=="weekend"], FUN = mean, simplify = T)
-
-
-# combine the average step values into a single array, then turn into a data frame (s wont be a factor)
-avg_steps <- as.numeric(c(average_weekday_steps,average_wkend_steps))
-avg_steps <- as.data.frame(avg_steps)
-
-#create a vector of matcing weekday/weekend lables
-is_weekend <- c(rep("weekday", 288), rep("weekend", 288))
-
-# used column bind to create a data frame to graph with
-all_avg_ <- as.data.frame(cbind(avg_steps, is_weekend))
-
-
-# I also need to create an  altered  time interval for graphing, because the integer interval goes 55, 60, 100, 105 (not evenly spaced b/c not true times).  Instead i filled the 'time_interval' column with one full day's times values from my pre-processed r-time values. I repeated this twice (one full 24 hrs for graphing weekend, and one full day of 24hrs for graphing weekedays)
-times <- rep(activity$R_time[1:288], 2)
-
-all_avg_$time_interval <- times
-
-# plot with ggplot, using facet_wrap to create two panels
+# plot with ggplot, using facet_wrap to create two panels, one for weekdays and one for weekends.
 library(ggplot2)
-g <- ggplot(data = all_avg_, aes(x = time_interval, y = avg_steps, group = is_weekend)) +
-     facet_wrap( ~ is_weekend, ncol = 1) + geom_line(color = "blue", lwd = .8) + theme_bw(base_size = 14) +
-     xlab("time (sampled at 5 minute intervals)") + ylab("steps per time interval") 
-
-# adding correctly formatted time x axis with package 'scales'
-library(scales)
-g <- g + scale_x_datetime(breaks = date_breaks("4 hour"), labels = date_format("%H:%M"))
-
-#print the graph
+g <- ggplot(data = avg_steps_wkday_wend, aes(x = minute_intervals, y = avg_steps, group = is_weekend)) +
+     facet_wrap( ~ is_weekend, ncol = 1) + geom_line(colour = "blue", lwd = .8) + 
+     xlab("minutes (sampled at 5 minute intervals)") + ylab("average number of steps per time interval") +
+     theme_bw(base_size = 12)
+library(scales) # adding correctly formatted time x axis with package 'scales'
+g <- g + scale_x_continuous(breaks=c(0, 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320))
 print(g)
 ```
+
