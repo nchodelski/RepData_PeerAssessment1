@@ -29,9 +29,9 @@ activity$R_time <- strptime(activity$datetime, format = "%Y-%m-%d %H%M")  # inte
 ```
 <br>  
   
-#### Mean steps per day
+#### Mean number of steps per day
 
-I calculated the mean  number of steps taken per day, using tapply, with simplify = TRUE to the result to an array.  I created a data frame by using column-bind to join an array of the unique dates to the mean number of steps.  I lastly assigned tidy column names.the rownames of the summarized steps (which are the dates) with the mean number of steps per day.  I lastly assigned tidy column names to this new data frame.
+I calculated the mean  number of steps taken per day, using tapply, setting simplify = TRUE so that the result would be returned in the form of an array.  I created a data frame by using column-bind to join an array of the unique dates to the mean number of steps.  I lastly assigned tidy column names.the rownames of the summarized steps (which are the dates) with the mean number of steps per day.  I lastly assigned tidy column names to this new data frame.
 
 
 ```r
@@ -41,84 +41,8 @@ colnames(mean_steps_table) <- c("Date measured","Mean_steps")  # renaming with t
 ```
 <br>  
 
-I then used the xtable package to create and print a tidy HTML table of the mean steps per day.
-
-
-```r
-library(xtable)
-table <- xtable(mean_steps_table, align = c("c","c","c"))
-print(table, type="html", include.rownames = FALSE)
-```
-
-<!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Wed Apr  8 13:07:39 2015 -->
-<table border=1>
-<tr> <th> Date measured </th> <th> Mean_steps </th>  </tr>
-  <tr> <td align="center"> 2012-10-01 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-10-02 </td> <td align="center"> 0.44 </td> </tr>
-  <tr> <td align="center"> 2012-10-03 </td> <td align="center"> 39.42 </td> </tr>
-  <tr> <td align="center"> 2012-10-04 </td> <td align="center"> 42.07 </td> </tr>
-  <tr> <td align="center"> 2012-10-05 </td> <td align="center"> 46.16 </td> </tr>
-  <tr> <td align="center"> 2012-10-06 </td> <td align="center"> 53.54 </td> </tr>
-  <tr> <td align="center"> 2012-10-07 </td> <td align="center"> 38.25 </td> </tr>
-  <tr> <td align="center"> 2012-10-08 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-10-09 </td> <td align="center"> 44.48 </td> </tr>
-  <tr> <td align="center"> 2012-10-10 </td> <td align="center"> 34.38 </td> </tr>
-  <tr> <td align="center"> 2012-10-11 </td> <td align="center"> 35.78 </td> </tr>
-  <tr> <td align="center"> 2012-10-12 </td> <td align="center"> 60.35 </td> </tr>
-  <tr> <td align="center"> 2012-10-13 </td> <td align="center"> 43.15 </td> </tr>
-  <tr> <td align="center"> 2012-10-14 </td> <td align="center"> 52.42 </td> </tr>
-  <tr> <td align="center"> 2012-10-15 </td> <td align="center"> 35.20 </td> </tr>
-  <tr> <td align="center"> 2012-10-16 </td> <td align="center"> 52.38 </td> </tr>
-  <tr> <td align="center"> 2012-10-17 </td> <td align="center"> 46.71 </td> </tr>
-  <tr> <td align="center"> 2012-10-18 </td> <td align="center"> 34.92 </td> </tr>
-  <tr> <td align="center"> 2012-10-19 </td> <td align="center"> 41.07 </td> </tr>
-  <tr> <td align="center"> 2012-10-20 </td> <td align="center"> 36.09 </td> </tr>
-  <tr> <td align="center"> 2012-10-21 </td> <td align="center"> 30.63 </td> </tr>
-  <tr> <td align="center"> 2012-10-22 </td> <td align="center"> 46.74 </td> </tr>
-  <tr> <td align="center"> 2012-10-23 </td> <td align="center"> 30.97 </td> </tr>
-  <tr> <td align="center"> 2012-10-24 </td> <td align="center"> 29.01 </td> </tr>
-  <tr> <td align="center"> 2012-10-25 </td> <td align="center"> 8.65 </td> </tr>
-  <tr> <td align="center"> 2012-10-26 </td> <td align="center"> 23.53 </td> </tr>
-  <tr> <td align="center"> 2012-10-27 </td> <td align="center"> 35.14 </td> </tr>
-  <tr> <td align="center"> 2012-10-28 </td> <td align="center"> 39.78 </td> </tr>
-  <tr> <td align="center"> 2012-10-29 </td> <td align="center"> 17.42 </td> </tr>
-  <tr> <td align="center"> 2012-10-30 </td> <td align="center"> 34.09 </td> </tr>
-  <tr> <td align="center"> 2012-10-31 </td> <td align="center"> 53.52 </td> </tr>
-  <tr> <td align="center"> 2012-11-01 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-11-02 </td> <td align="center"> 36.81 </td> </tr>
-  <tr> <td align="center"> 2012-11-03 </td> <td align="center"> 36.70 </td> </tr>
-  <tr> <td align="center"> 2012-11-04 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-11-05 </td> <td align="center"> 36.25 </td> </tr>
-  <tr> <td align="center"> 2012-11-06 </td> <td align="center"> 28.94 </td> </tr>
-  <tr> <td align="center"> 2012-11-07 </td> <td align="center"> 44.73 </td> </tr>
-  <tr> <td align="center"> 2012-11-08 </td> <td align="center"> 11.18 </td> </tr>
-  <tr> <td align="center"> 2012-11-09 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-11-10 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-11-11 </td> <td align="center"> 43.78 </td> </tr>
-  <tr> <td align="center"> 2012-11-12 </td> <td align="center"> 37.38 </td> </tr>
-  <tr> <td align="center"> 2012-11-13 </td> <td align="center"> 25.47 </td> </tr>
-  <tr> <td align="center"> 2012-11-14 </td> <td align="center">  </td> </tr>
-  <tr> <td align="center"> 2012-11-15 </td> <td align="center"> 0.14 </td> </tr>
-  <tr> <td align="center"> 2012-11-16 </td> <td align="center"> 18.89 </td> </tr>
-  <tr> <td align="center"> 2012-11-17 </td> <td align="center"> 49.79 </td> </tr>
-  <tr> <td align="center"> 2012-11-18 </td> <td align="center"> 52.47 </td> </tr>
-  <tr> <td align="center"> 2012-11-19 </td> <td align="center"> 30.70 </td> </tr>
-  <tr> <td align="center"> 2012-11-20 </td> <td align="center"> 15.53 </td> </tr>
-  <tr> <td align="center"> 2012-11-21 </td> <td align="center"> 44.40 </td> </tr>
-  <tr> <td align="center"> 2012-11-22 </td> <td align="center"> 70.93 </td> </tr>
-  <tr> <td align="center"> 2012-11-23 </td> <td align="center"> 73.59 </td> </tr>
-  <tr> <td align="center"> 2012-11-24 </td> <td align="center"> 50.27 </td> </tr>
-  <tr> <td align="center"> 2012-11-25 </td> <td align="center"> 41.09 </td> </tr>
-  <tr> <td align="center"> 2012-11-26 </td> <td align="center"> 38.76 </td> </tr>
-  <tr> <td align="center"> 2012-11-27 </td> <td align="center"> 47.38 </td> </tr>
-  <tr> <td align="center"> 2012-11-28 </td> <td align="center"> 35.36 </td> </tr>
-  <tr> <td align="center"> 2012-11-29 </td> <td align="center"> 24.47 </td> </tr>
-  <tr> <td align="center"> 2012-11-30 </td> <td align="center">  </td> </tr>
-   </table>
-<br>
   
-#### Total steps per day
+#### Calculating the total number of steps per day
 
 I used tapply to calculate the total number of steps taken per day, and specified simplify = TRUE so that the result would be returned as an array.   I then examined the variation in the number of steps taken on different days by plotting a histogram with the base plotting function hist().
 
@@ -174,7 +98,7 @@ On average, the subject took the most steps each day at **835,** which is the fi
 <br>  
 
 
-#### Imputing missing values
+##### Assessing missing values
 
 I counted the number of NA values by adding up TRUE vectors returned by the is.na() command.
 
@@ -187,7 +111,7 @@ There were **2304** NA values in the whole data set, which means that there were
 
 <br>
 
-#### Replacing missing values in Activity data
+#### Replacing the missing values in the Activity data
 
 I created a copy of the activity data in which I could fill in NA values, leaving the original activity data set untouched.  I also needed the average steps per time interval data to be a dataframe along with intervals, in order to use its values for replacment in my for loop, so did this with the data.frame() command.
 
@@ -219,7 +143,7 @@ paste("All NA values were filled: ", (number_na == count_replaced))
 
 <br>
 
-#### Number of steps taken per day
+#### Re-calculate total number of steps taken per day
 
 I calculated the total number of steps taken each day, using the new dataset with all 2304 missing values filled in. I then found the mean and median values. 
 
@@ -251,7 +175,7 @@ hist(total_steps_replacement, breaks = 40, col="lightblue", xlab =("Steps per da
 
 <br>
 
-##### My Conculsions
+##### My conculsions
 
 Replacing the missing values with the average step values per time interval has changed the overall frequency of step amounts.   The number of days with total steps amounts between 10,500-11,000 steps per day has increased from 7 days to 11 days. In the original data set, the most common step frequency was 10,000-10,500, but with replacment of NAs, the most common frequency has shifted to the next step range.  The comparative frequency of other ranges of steps per day have decreased, compared to the 10,500-11,000 column.
 
@@ -268,6 +192,7 @@ activity_no_NAs$day_of_week <- weekdays(activity_no_NAs$R_time)
 activity_no_NAs$is_weekday <- character(length = length_data)
 
 activity_no_NAs$is_weekday <- ifelse(activity_no_NAs$day_of_week == "Saturday" | activity_no_NAs$day_of_week =="Sunday", "weekend","weekday")  # if x or y, apply  z
+
 activity_no_NAs$is_weekday <- as.factor(activity_no_NAs$is_weekday)
 ```
 
@@ -296,8 +221,10 @@ g <- ggplot(data = avg_steps_wkday_wend, aes(x = minute_intervals, y = avg_steps
      facet_wrap( ~ is_weekend, ncol = 1) + geom_line(colour = "blue", lwd = .8) + 
      xlab("minutes (sampled at 5 minute intervals)") + ylab("average number of steps per time interval") +
      theme_bw(base_size = 12)
+
 library(scales) # adding correctly formatted time x axis with package 'scales'
 g <- g + scale_x_continuous(breaks=c(0, 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320))
+
 print(g)
 ```
 
